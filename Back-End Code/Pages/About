@@ -1,0 +1,126 @@
+import React from "react";
+import { motion } from "motion/react";
+import { Palette, Database, Users, Heart } from "lucide-react";
+import { Card, CardContent } from "../components/ui/card";
+
+export default function About() {
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden mb-16">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 via-rose-400/20 to-purple-400/20 blur-3xl" />
+        <div className="relative max-w-4xl mx-auto px-6 py-16 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-5xl md:text-7xl mb-6 bg-gradient-to-r from-orange-600 via-rose-600 to-purple-600 bg-clip-text text-transparent">
+              About FGCU Artverse
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              A digital gateway to explore and celebrate the diverse art collection from Florida Gulf Coast University's Dataverse
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-6 pb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mb-16"
+        >
+          <Card className="bg-white/80 backdrop-blur-sm border-none shadow-xl">
+            <CardContent className="p-8 md:p-12">
+              <h2 className="text-3xl text-gray-800 mb-6">Our Mission</h2>
+              <p className="text-lg text-gray-600 leading-relaxed mb-4">
+                FGCU Artverse is dedicated to making art accessible to everyone. We connect directly to the FGCU Dataverse repository to showcase digital artworks, providing a beautiful and intuitive platform for art discovery and appreciation.
+              </p>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Our platform bridges the gap between academic repositories and public engagement, transforming raw data into an inspiring visual experience that celebrates creativity and artistic expression.
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Features Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <h2 className="text-3xl text-gray-800 mb-8 text-center">What We Offer</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card className="bg-white/80 backdrop-blur-sm border-none shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardContent className="p-8">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-rose-500 rounded-xl flex items-center justify-center mb-4">
+                  <Database className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl text-gray-800 mb-3">Direct API Integration</h3>
+                <p className="text-gray-600">
+                  Real-time connection to FGCU Dataverse API, ensuring you always see the most up-to-date collection with accurate metadata and artwork details.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/80 backdrop-blur-sm border-none shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardContent className="p-8">
+                <div className="w-12 h-12 bg-gradient-to-br from-rose-400 to-purple-500 rounded-xl flex items-center justify-center mb-4">
+                  <Palette className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl text-gray-800 mb-3">Beautiful Presentation</h3>
+                <p className="text-gray-600">
+                  Carefully designed interface that puts the artwork first, with smooth animations, high-quality image display, and intuitive navigation.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/80 backdrop-blur-sm border-none shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardContent className="p-8">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-blue-500 rounded-xl flex items-center justify-center mb-4">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl text-gray-800 mb-3">Accessible to All</h3>
+                <p className="text-gray-600">
+                  No login required, no barriers. Anyone can explore the collection, search for artworks, and learn about artists and their creations.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/80 backdrop-blur-sm border-none shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardContent className="p-8">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center mb-4">
+                  <Heart className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl text-gray-800 mb-3">Built with Care</h3>
+                <p className="text-gray-600">
+                  Thoughtfully crafted with modern web technologies, responsive design, and attention to detail for an exceptional user experience.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.div>
+
+        {/* Technology Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-16"
+        >
+          <Card className="bg-gradient-to-br from-orange-100 via-rose-100 to-purple-100 border-none shadow-xl">
+            <CardContent className="p-8 md:p-12 text-center">
+              <h2 className="text-3xl text-gray-800 mb-4">Powered by FGCU Dataverse</h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                The FGCU Dataverse is an open-source research data repository that promotes data sharing, preservation, and collaboration. Our platform leverages this powerful infrastructure to bring art into the spotlight.
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
