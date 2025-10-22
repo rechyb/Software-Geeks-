@@ -1,0 +1,236 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { Search, Loader2, Image as ImageIcon, AlertCircle, RefreshCw } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { motion, AnimatePresence } from "framer-motion";
+import ArtworkCard from "../components/gallery/ArtworkCard";
+import ArtworkModal from "../components/gallery/ArtworkModal";
+
+export default function Gallery() {
+  const [artworks, setArtworks] = useState([]);
+  const [filteredArtworks, setFilteredArtworks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedArtwork, setSelectedArtwork] = useState(null);
+
+  useEffect(() => {
+    fetchArtworks();
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredArtworks(artworks);
+    } else {
+      const query = searchQuery.toLowerCase();
+      setFilteredArtworks(
+        artworks.filter(
+          (artwork) =>
+            artwork.title?.toLowerCase().includes(query) ||
+            artwork.artist?.toLowerCase().includes(query) ||
+            artwork.description?.toLowerCase().includes(query) ||
+            artwork.medium?.toLowerCase().includes(query)
+        )
+      );
+    }
+  }, [searchQuery, artworks]);
+
+  const fetchArtworks = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `I need you to fetch actual artwork data from the FGCU Dataverse API using this information:
+
+API Base URL: https://dataverse.fgcu.edu/api
+API Key: 88ff766d-c086-4182-a357-e02894e96998
+Target: dataverses/art/contents
+
+Make an HTTP GET request to: https://dataverse.fgcu.edu/api/dataverses/art/contents
+Include the API key in the header as: X-Dataverse-key: 88ff766d-c086-4182-a357-e02894e96998
+
+From the response, extract information about artworks/datasets and format each one as:
+{
+  "id": "dataset persistent identifier or id",
+  "title": "dataset/artwork title",
+  "artist": "creator or author name",
+  "description": "description text",
+  "image_url": "thumbnail URL or file access URL if available",
+  "year": "publication date or year",
+  "medium": "content type or subject",
+  "dimensions": "any size info if available"
+}
+
+IMPORTANT: 
+- Use actual data from the API response
+- For image_url, construct proper URLs like: https://dataverse.fgcu.edu/api/access/datafile/{file_id} 
+- If thumbnail exists, use: https://dataverse.fgcu.edu/api/access/datafile/{file_id}?imageThumb=400
+- Return at least 10-20 actual artworks from the API
+- If the API returns datasets, look for file information within each dataset
+- Make sure image URLs are valid and point to actual files in the dataverse
+
+Return the data in the specified JSON format.`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            artworks: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  title: { type: "string" },
+                  artist: { type: "string" },
+                  description: { type: "string" },
+                  image_url: { type: "string" },
+                  year: { type: "string" },
+                  medium: { type: "string" },
+                  dimensions: { type: "string" }
+                }
+              }
+            },
+            api_status: { type: "string" },
+            total_found: { type: "number" }
+          }
+        }
+      });
+
+      if (response.artworks && response.artworks.length > 0) {
+        // Filter out artworks without valid image URLs
+        const validArtworks = response.artworks.filter(art => 
+          art.image_url && art.image_url.includes('http')
+        );
+        
+        if (validArtworks.length > 0) {
+          setArtworks(validArtworks);
+          setFilteredArtworks(validArtworks);
+        } else {
+          setError("The FGCU Dataverse 'art' collection was found but doesn't contain accessible image files. The collection may contain datasets without image previews, or the files may require authentication.");
+          // Show artworks anyway even without images
+          setArtworks(response.artworks);
+          setFilteredArtworks(response.artworks);
+        }
+      } else {
+        setError(`API Status: ${response.api_status || "Unknown"}. The 'art' subtree may be empty or require special permissions. Total found: ${response.total_found || 0}`);
+      }
+    } catch (err) {
+      console.error("Error fetching artworks:", err);
+      setError("Unable to connect to FGCU Dataverse API. This could be due to: (1) The API key may need additional permissions, (2) The 'art' subtree may not exist or be accessible, (3) CORS restrictions may be blocking the request. Please verify the API key has access to the 'art' dataverse.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden mb-12">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 via-rose-400/20 to-purple-400/20 blur-3xl" />
+        <div className="relative max-w-7xl mx-auto px-6 py-16 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-orange-600 via-rose-600 to-purple-600 bg-clip-text text-transparent">
+              Art Collection
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+              Explore the vibrant world of digital art from FGCU Dataverse
+            </p>
+          </motion.div>
+
+          {/* Search Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="max-w-2xl mx-auto"
+          >
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search by title, artist, or medium..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 py-6 text-lg rounded-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm focus:border-orange-400 focus:ring-orange-400 shadow-lg"
+              />
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 pb-16">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
+            <p className="text-gray-600 text-lg">Connecting to FGCU Dataverse...</p>
+            <p className="text-gray-500 text-sm mt-2">This may take a moment</p>
+          </div>
+        ) : error ? (
+          <div className="max-w-3xl mx-auto">
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-5 w-5" />
+              <AlertDescription className="ml-2">{error}</AlertDescription>
+            </Alert>
+            <div className="text-center">
+              <Button 
+                onClick={fetchArtworks}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry Connection
+              </Button>
+            </div>
+          </div>
+        ) : filteredArtworks.length === 0 ? (
+          <div className="text-center py-20">
+            <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No artworks found</h3>
+            <p className="text-gray-500">
+              {searchQuery ? "Try adjusting your search terms" : "The gallery is currently empty"}
+            </p>
+          </div>
+        ) : (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mb-6 text-center"
+            >
+              <p className="text-gray-600">
+                Showing <span className="font-semibold text-orange-600">{filteredArtworks.length}</span> {filteredArtworks.length === 1 ? 'artwork' : 'artworks'}
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <AnimatePresence mode="wait">
+                {filteredArtworks.map((artwork, index) => (
+                  <ArtworkCard
+                    key={artwork.id}
+                    artwork={artwork}
+                    index={index}
+                    onClick={() => setSelectedArtwork(artwork)}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Artwork Modal */}
+      <ArtworkModal
+        artwork={selectedArtwork}
+        onClose={() => setSelectedArtwork(null)}
+      />
+    </div>
+  );
+}
